@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Blackhall Orbit Beach</title>
+    <style>
+        :root { --orbit-size: 500px; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            color: white; 
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            /* This is a high-quality beach background that is built INTO the code */
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1500&q=80');
+            background-size: cover;
+            background-position: center;
+            transition: background 2s;
+        }
+
+        .orbit-container {
+            position: relative;
+            width: var(--orbit-size);
+            height: var(--orbit-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            width: 100%; height: 100%;
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+        }
+
+        #celestial-body {
+            position: absolute;
+            font-size: 3.5rem;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            filter: drop-shadow(0 0 20px orange);
+        }
+
+        .card { 
+            background: rgba(0, 0, 0, 0.5); 
+            padding: 40px; 
+            border-radius: 50%; 
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px);
+            width: 260px;
+            height: 260px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        h1 { font-size: 0.8rem; letter-spacing: 4px; margin: 0 0 10px 0; opacity: 0.7; }
+        #clock-display { font-size: 1.6rem; font-weight: bold; }
+        #temp-display { font-size: 5rem; font-weight: 100; margin: 0; }
+    </style>
+</head>
+<body id="bg">
+
+    <div class="orbit-container">
+        <div class="orbit-ring"></div>
+        <div id="celestial-body">☀️</div>
+
+        <div class="card">
+            <h1>BLACKHALL</h1>
+            <div id="clock-display">00:00:00</div>
+            <div id="temp-display">--°</div>
+        </div>
+    </div>
+
+    <script>
+        function update() {
+            const now = new Date();
+            document.getElementById('clock-display').innerText = now.toLocaleTimeString();
+
+            const hrs = now.getHours();
+            const mins = now.getMinutes();
+            const secs = now.getSeconds();
+            const totalSecs = 24 * 60 * 60;
+            const currentSecs = (hrs * 3600) + (mins * 60) + secs;
+            
+            // Orbit Math
+            const angle = ((currentSecs / totalSecs) * 2 * Math.PI) + (Math.PI / 2);
+            const sun = document.getElementById('celestial-body');
+            const radius = 250; 
+            
+            sun.style.left = (radius + radius * Math.cos(angle)) + "px";
+            sun.style.top = (radius + radius * Math.sin(angle)) + "px";
+
+            const bg = document.getElementById('bg');
+            if (hrs >= 6 && hrs < 20) {
+                sun.innerText = "☀️";
+                // Daytime Beach URL
+                bg.style.backgroundImage = "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1500&q=80')";
+            } else {
+                sun.innerText = "🌙";
+                // Nighttime Dark Gradient
+                bg.style.backgroundImage = "radial-gradient(circle, #2c3e50, #000000)";
+            }
+        }
+
+        async function getWeather() {
+            try {
+                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=54.7460&longitude=-1.2825&current_weather=true");
+                const data = await res.json();
+                document.getElementById('temp-display').innerText = Math.round(data.current_weather.temperature) + "°";
+            } catch (e) {}
+        }
+
+        setInterval(update, 1000);
+        update();
+        getWeather();
+    </script>
+</body>
+</html>
